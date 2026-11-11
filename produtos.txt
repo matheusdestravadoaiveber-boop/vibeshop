@@ -12,4 +12,4 @@
 # Se algum link de afiliado não puxar os dados, coloque o link normal do
 # produto depois de outra barra:
 # Sapatos | https://mercadolivre.com/sec/XXXXXXX | https://produto.mercadolivre.com.br/MLB-123456789-...
-
+ ferramentas  https://meli.la/2sSQdB4
