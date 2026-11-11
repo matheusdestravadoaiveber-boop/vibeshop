@@ -23,7 +23,6 @@ header{background:var(--y);position:sticky;top:0;z-index:5;border-bottom:1px sol
 .btn-n:hover{background:#23285f}
 .btn-y{background:var(--y);color:var(--n)}
 .btn-y:hover{background:#f2da00}
-.btn-ghost{background:#fff;color:var(--n);border:2px solid var(--n)}
 .hero{background:var(--y);padding:48px 0 64px}
 .hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
 .hero h1{margin:0 0 16px;font-size:clamp(32px,5vw,54px);line-height:1.08;font-weight:800;letter-spacing:-1.5px;color:var(--n)}
@@ -45,8 +44,7 @@ h2{margin:0 0 8px;font-size:32px;font-weight:800;letter-spacing:-.8px;color:var(
 .search input{border:0;outline:0;font:400 15px Poppins,sans-serif;width:100%;background:transparent;color:var(--ink)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 .chips{display:flex;flex-wrap:wrap;gap:8px}
-.chip{white-space:nowrap}
-.chip{min-height:44px;padding:0 18px;border-radius:999px;border:2px solid var(--line);background:#fff;font:500 14px Poppins,sans-serif;color:var(--ink);cursor:pointer}
+.chip{white-space:nowrap;min-height:44px;padding:0 18px;border-radius:999px;border:2px solid var(--line);background:#fff;font:500 14px Poppins,sans-serif;color:var(--ink);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--n);border-color:var(--n);color:#fff}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:20px}
 .card{background:#fff;border-radius:18px;overflow:hidden;display:flex;flex-direction:column;border:1px solid var(--line);transition:transform .15s,box-shadow .15s}
@@ -62,7 +60,6 @@ h2{margin:0 0 8px;font-size:32px;font-weight:800;letter-spacing:-.8px;color:var(
 .price{font-size:24px;font-weight:600;color:var(--ink)}
 .ship{font-size:13px;color:#00803E;font-weight:500}
 .body .btn{margin-top:auto;width:100%}
-.btn[aria-disabled="true"]{background:#E3E3EA;color:#55586F;cursor:not-allowed}
 .card.loading .thumb{animation:pulse 1.2s ease-in-out infinite}
 @keyframes pulse{50%{opacity:.6}}
 .empty{display:none;padding:40px;text-align:center;color:var(--muted);background:#fff;border-radius:18px}
@@ -87,7 +84,6 @@ footer{background:#fff;border-top:1px solid var(--line);padding:36px 0;margin-to
 .hero-art{display:none}
 .trust{grid-template-columns:1fr 1fr;margin-top:-24px}
 .steps{grid-template-columns:1fr}
-.top .btn .lbl{display:none}
 .zap{padding:28px}
 }
 @media (max-width:480px){.trust{grid-template-columns:1fr}}
@@ -186,10 +182,6 @@ footer{background:#fff;border-top:1px solid var(--line);padding:36px 0;margin-to
 </footer>
 
 <script>
-/* ============================================================
-   CONFIGURAÇÃO
-   Os produtos ficam no arquivo produtos.txt (uma linha por produto).
-   ============================================================ */
 const CONFIG = {
   whatsapp: "",   // link do grupo, ex: https://chat.whatsapp.com/...
   instagram: "",  // ex: https://instagram.com/vibeshop
@@ -201,7 +193,6 @@ const CATEGORIAS = [
   "Moda Feminina", "Moda Masculina", "Moda Infantil", "Moda Fitness", "Moda Praia",
   "Sapatos", "Bolsas e Acessórios", "Relógios e Joias", "Beleza", "Perfumes", "Ferramentas"
 ];
-/* ============================================================ */
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const brl = v => (typeof v === "number" && isFinite(v)) ? v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" }) : "";
@@ -261,10 +252,31 @@ function render(){
   document.getElementById("grid").innerHTML = list.map(card).join("");
 }
 
+function numero(v){
+  if (!v) return null;
+  let t = String(v).replace(/[^\d.,]/g, "");
+  if (t.includes(",")) t = t.replace(/\./g, "").replace(",", ".");
+  const n = parseFloat(t);
+  return isFinite(n) && n > 0 ? n : null;
+}
+
+/* Linha do produtos.txt:
+   Categoria | link de afiliado | Nome | Preço | Preço antigo | Link da foto */
 function lerLista(txt){
   return txt.split(/\r?\n/).map(l => l.trim()).filter(l => l && !l.startsWith("#")).map(l => {
-    const [categoria, link, produto] = l.split("|").map(x => (x || "").trim());
-    return { categoria: categoria || "Achados", link, produto };
+    const c = l.split("|").map(x => (x || "").trim());
+    const p = { categoria: c[0] || "Achados", link: c[1] || "" };
+    const nome = c[2], preco = numero(c[3]), antigo = numero(c[4]), foto = c[5];
+    if (nome) {
+      p.dados = {
+        nome,
+        preco,
+        precoAntigo: antigo && preco && antigo > preco ? antigo : null,
+        imagem: /^https?:\/\//i.test(foto || "") ? foto : null,
+        freteGratis: false
+      };
+    }
+    return p;
   }).filter(p => /^https?:\/\//i.test(p.link));
 }
 
@@ -277,9 +289,9 @@ async function carregar(){
   } catch { PRODUTOS = []; }
   renderChips(); render();
   await Promise.all(PRODUTOS.map(async p => {
+    if (p.dados) return;
     try {
-      const u = "/api/produto?url=" + encodeURIComponent(p.link) + (p.produto ? "&produto=" + encodeURIComponent(p.produto) : "");
-      const r = await fetch(u);
+      const r = await fetch("/api/produto?url=" + encodeURIComponent(p.link));
       const j = await r.json();
       if (j.ok) p.dados = j; else p.erro = j.erro || "erro";
     } catch (e) { p.erro = "erro"; }
