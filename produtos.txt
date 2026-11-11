@@ -1,15 +1,17 @@
 # VITRINE DA VIBE SHOP
-# Uma linha por produto, no formato:
-#   Categoria | link de afiliado
+# Uma linha por produto. Separe cada parte com a barra |
+#
+#   Categoria | Link de afiliado | Nome | Preço | Preço antigo | Link da foto
+#
+# Só Categoria e Link são obrigatórios. Preço antigo é opcional (deixe vazio).
+# Exemplo:
+#   Ferramentas | https://meli.la/XXXX | Jogo de Chaves 40 Peças | 89,90 | 129,90 | https://http2.mlstatic.com/....jpg
 #
 # Categorias: Moda Feminina, Moda Masculina, Moda Infantil, Moda Fitness,
 # Moda Praia, Sapatos, Bolsas e Acessórios, Relógios e Joias, Beleza,
 # Perfumes, Ferramentas
 #
-# Linhas que começam com # são ignoradas. Exemplo:
-# Sapatos | https://mercadolivre.com/sec/XXXXXXX
-#
-# Se algum link de afiliado não puxar os dados, coloque o link normal do
-# produto depois de outra barra:
-# Sapatos | https://mercadolivre.com/sec/XXXXXXX | https://produto.mercadolivre.com.br/MLB-123456789-...
-   Ferramentas | https://meli.la/2sSQdB4
+# Linhas que começam com # são ignoradas.
+
+Ferramentas | https://meli.la/2sSQdB4 | NOME DO PRODUTO | 0,00 |  | LINK DA FOTO
+Ferramentas | https://meli.la/1jKUoxU | NOME DO PRODUTO | 0,00 |  | LINK DA FOTO
